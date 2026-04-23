@@ -4,15 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台電輪班工時系統 - Cyberpunk Edition</title>
-
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0d0f12">
   
-  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0d0f12">
+  <link rel="apple-touch-icon" href="./icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="台電排班">
-  
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -21,25 +20,15 @@
   <style>
     /* 強化版 Cyberpunk 視覺特效 */
     body { background-color: #0d0f12; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    
     .neon-text { color: #00F0FF; text-shadow: 0 0 10px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.4); }
-    .neon-border { 
-      border: 1px solid rgba(0, 240, 255, 0.3); 
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.1), inset 0 0 20px rgba(0, 240, 255, 0.05); 
-    }
-    
+    .neon-border { border: 1px solid rgba(0, 240, 255, 0.3); box-shadow: 0 0 15px rgba(0, 240, 255, 0.1), inset 0 0 20px rgba(0, 240, 255, 0.05); }
     .cyber-table-row { border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.2s ease-in-out; }
-    .cyber-table-row:hover { 
-      background-color: rgba(0, 240, 255, 0.05); 
-      box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2); 
-    }
-    
+    .cyber-table-row:hover { background-color: rgba(0, 240, 255, 0.05); box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2); }
     .shift-badge { padding: 6px 18px; border-radius: 6px; font-weight: 900; border: 2px solid; background: rgba(0,0,0,0.5); font-size: 1.25rem; }
     .color-A { color: #00F0FF; border-color: #00F0FF; box-shadow: 0 0 8px rgba(0, 240, 255, 0.4); text-shadow: 0 0 5px rgba(0, 240, 255, 0.8); }
     .color-B { color: #00FF41; border-color: #00FF41; box-shadow: 0 0 8px rgba(0, 255, 65, 0.4); text-shadow: 0 0 5px rgba(0, 255, 65, 0.8); }
     .color-C { color: #FF9D00; border-color: #FF9D00; box-shadow: 0 0 8px rgba(255, 157, 0, 0.4); text-shadow: 0 0 5px rgba(255, 157, 0, 0.8); }
     .color-D { color: #FFDD00; border-color: #FFDD00; box-shadow: 0 0 8px rgba(255, 221, 0, 0.4); text-shadow: 0 0 5px rgba(255, 221, 0, 0.8); }
-    
     .color-Alert { color: #FF3333; text-shadow: 0 0 8px rgba(255, 51, 51, 0.8); }
   </style>
 </head>
@@ -189,7 +178,7 @@
         <div className="w-full">
           <div className="text-center mb-10">
             <h1 className="text-4xl font-bold neon-text tracking-widest">✦ 台電輪班工時系統 ✦</h1>
-            <p className="text-gray-400 mt-2 text-sm tracking-widest font-mono">TAIPOWER SHIFT MANAGEMENT SYSTEM</p>
+            <p className="text-gray-400 mt-2 text-sm tracking-widest font-mono">TAIPOWER SHIFT MANAGEMENT SYSTEM PWA-Ready</p>
           </div>
 
           <div className="neon-border rounded-lg p-6 mb-8 bg-[#0a0c10]">
@@ -225,7 +214,7 @@
                 <thead className="bg-[#12161c] text-gray-300 border-b border-[#1e2530]">
                   <tr>
                     <th className="py-5 font-bold tracking-widest text-base">班別</th>
-                    <th className="py-5 font-bold tracking-widest text-base">值班總工時</th>
+                    <th className="py-5 font-bold tracking-widest text-base">整月總工時</th>
                     <th className="py-5 font-bold tracking-widest text-base">交接班時數</th>
                     <th className="py-5 font-bold tracking-widest text-base">國定假日時數</th>
                     <th className="py-5 font-bold tracking-widest text-base">保養時數</th>
@@ -246,7 +235,6 @@
                       </td>
                       <td className="py-6 text-xl font-bold text-gray-100 align-middle">{row.maintenanceHours.toFixed(1)} <span className="text-sm font-normal text-gray-500">HR</span></td>
                       
-                      {/* 修改：字體放大至 text-xl，顏色直接連動 color-${row.shift} */}
                       <td className="py-6 font-bold tracking-wider leading-loose align-middle">
                         {row.monthHolidays.length > 0 ? (
                           row.monthHolidays.map((holiday, idx) => (
@@ -273,9 +261,17 @@
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
+  </script>
+
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./sw.js').then(function(registration) {
+          console.log('PWA ServiceWorker 註冊成功！');
+        }).catch(function(err) {
+          console.log('PWA ServiceWorker 註冊失敗，但不影響系統運作：', err);
+        });
+      });
     }
   </script>
 </body>
