@@ -167,10 +167,6 @@
       const [loading, setLoading] = useState(false);
       const [isManual, setIsManual] = useState(false);
       const [errorMsg, setErrorMsg] = useState("");
-      const [parsedData, setParsedData] = useState({ workDict: {}, holidayMap: new Map() });
-      const [loading, setLoading] = useState(false);
-      const [isManual, setIsManual] = useState(false);
-      const [errorMsg, setErrorMsg] = useState("");
       
       // 手動模式狀態
       const [manualWorkingDays, setManualWorkingDays] = useState(20);
@@ -272,7 +268,7 @@
                   <thead className="bg-[#12161c] text-gray-300 border-b border-[#1e2530]">
                     <tr>
                       <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">班別</th>
-                      <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">整月總工時</th>
+                      <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">值班總工時</th>
                       <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">交接班時數</th>
                       <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">國定假日時數</th>
                       <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">保養時數</th>
