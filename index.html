@@ -155,8 +155,18 @@
     };
 
     const App = () => {
-      const [rocYear, setRocYear] = useState(115);
-      const [month, setMonth] = useState(4);
+       // 取得現在的西元年與月份
+       const now = new Date();
+       const currentYear = now.getFullYear(); // 例如 2026
+       const currentMonth = now.getMonth() + 1; // 0-11 轉為 1-12
+
+      // 將西元轉為民國，並設定為初始值
+      const [rocYear, setRocYear] = useState(currentYear - 1911); 
+      const [month, setMonth] = useState(currentMonth);
+      const [parsedData, setParsedData] = useState({ workDict: {}, holidayMap: new Map() });
+      const [loading, setLoading] = useState(false);
+      const [isManual, setIsManual] = useState(false);
+      const [errorMsg, setErrorMsg] = useState("");
       const [parsedData, setParsedData] = useState({ workDict: {}, holidayMap: new Map() });
       const [loading, setLoading] = useState(false);
       const [isManual, setIsManual] = useState(false);
