@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台電輪班工時系統 - Cyberpunk Edition</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* 強化版 Cyberpunk 視覺特效 */
+    body { background-color: #0d0f12; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    
+    .neon-text { color: #00F0FF; text-shadow: 0 0 10px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.4); }
+    .neon-border { 
+      border: 1px solid rgba(0, 240, 255, 0.3); 
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.1), inset 0 0 20px rgba(0, 240, 255, 0.05); 
+    }
+    
+    .cyber-table-row { border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.2s ease-in-out; }
+    .cyber-table-row:hover { 
+      background-color: rgba(0, 240, 255, 0.05); 
+      box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2); 
+    }
+    
+    .shift-badge { padding: 6px 18px; border-radius: 6px; font-weight: 900; border: 2px solid; background: rgba(0,0,0,0.5); font-size: 1.25rem; }
+    .color-A { color: #00F0FF; border-color: #00F0FF; box-shadow: 0 0 8px rgba(0, 240, 255, 0.4); text-shadow: 0 0 5px rgba(0, 240, 255, 0.8); }
+    .color-B { color: #00FF41; border-color: #00FF41; box-shadow: 0 0 8px rgba(0, 255, 65, 0.4); text-shadow: 0 0 5px rgba(0, 255, 65, 0.8); }
+    .color-C { color: #FF9D00; border-color: #FF9D00; box-shadow: 0 0 8px rgba(255, 157, 0, 0.4); text-shadow: 0 0 5px rgba(255, 157, 0, 0.8); }
+    .color-D { color: #FFDD00; border-color: #FFDD00; box-shadow: 0 0 8px rgba(255, 221, 0, 0.4); text-shadow: 0 0 5px rgba(255, 221, 0, 0.8); }
+    
+    .color-Alert { color: #FF3333; text-shadow: 0 0 8px rgba(255, 51, 51, 0.8); }
+  </style>
+</head>
+<body class="min-h-screen p-8 flex justify-center">
+
+  <div id="root" class="w-full max-w-7xl"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    const processTaiwanCalendar = (jsonData) => {
+      let workDict = {};
+      let holidayMap = new Map(); 
+
+      const workingDaysList = jsonData.filter(row => {
+        let isHolidayAdj = row.isHoliday;
+        const desc = row.description || "";
+        if (desc.includes("補行上班") || desc.includes("調整上班")) isHolidayAdj = true;
+        else if (desc.includes("調整放假")) isHolidayAdj = false;
+        return isHolidayAdj === false;
+      });
+
+      workingDaysList.forEach(row => {
+        const m = parseInt(row.date.substring(4, 6), 10);
+        workDict[m] = (workDict[m] || 0) + 1;
+      });
+
+      let holidays = jsonData.filter(row => {
+        const desc = row.description || "";
+        return desc.trim() !== "" &&
+               !desc.includes("補假") && !desc.includes("放假") &&
+               !desc.includes("補行上班") && !desc.includes("調整放假") &&
+               !desc.includes("調整上班");
+      });
+
+      let processedHolidays = holidays.map(row => {
+        let desc = row.description;
+        const dStr = row.date;
+        if (dStr.endsWith("0101")) desc = "新年";
+        else if (dStr.endsWith("0228")) desc = "228";
+        else if (dStr.endsWith("0928")) desc = "教師節";
+        else if (dStr.endsWith("1025")) desc = "光復節";
+        else if (desc.includes("除夕")) desc = "除夕";
+
+        const y = parseInt(dStr.substring(0,4), 10);
+        const m = parseInt(dStr.substring(4,6), 10);
+        const d = parseInt(dStr.substring(6,8), 10);
+        return { y, m, d, desc };
+      });
+
+      const springHolidays = processedHolidays.filter(h => h.desc === "春節");
+      springHolidays.sort((a,b) => new Date(a.y, a.m-1, a.d) - new Date(b.y, b.m-1, b.d));
+      springHolidays.forEach((h, idx) => {
+        if(idx === 0) h.desc = "初一";
+        if(idx === 1) h.desc = "初二";
+        if(idx === 2) h.desc = "初三";
+      });
+
+      const newYearEves = processedHolidays.filter(h => h.desc === "除夕");
+      const xiaonianye = newYearEves.map(h => {
+        let prevDay = new Date(h.y, h.m-1, h.d);
+        prevDay.setDate(prevDay.getDate() - 1);
+        return { y: prevDay.getFullYear(), m: prevDay.getMonth() + 1, d: prevDay.getDate(), desc: "小年夜" };
+      });
+
+      processedHolidays.forEach(h => holidayMap.set(`${h.y}/${h.m}/${h.d}`, h.desc));
+      xiaonianye.forEach(h => holidayMap.set(`${h.y}/${h.m}/${h.d}`, h.desc));
+
+      return { workDict, holidayMap };
+    };
+
+    const calculateShiftData = (rocYear, month, shiftType, holidayMap, workDict) => {
+      const year = rocYear + 1911;
+      const cycleHours = [8, 8, 6.5, 9, 9, 9, 0, 0, 8.5, 7, 7, 0];
+      const cycleCodes = [2, 2, 2, 1, 1, 1, 0, 0, 3, 3, 3, 0];
+      const offsets = { 'A': 0, 'B': 9, 'C': 6, 'D': 3 };
+      const offset = offsets[shiftType];
+
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const baseDate = new Date(2026, 0, 1);
+
+      let totalHours = 0, handoverHours = 0, holidayHours = 0;
+      let monthHolidays = []; 
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const currentDate = new Date(year, month - 1, day);
+        const diffDays = Math.round((currentDate - baseDate) / (1000 * 60 * 60 * 24));
+        const cycleIndex = ((diffDays % 12) + 12 + offset) % 12;
+
+        const todayHour = cycleHours[cycleIndex];
+        const todayCode = cycleCodes[cycleIndex];
+
+        totalHours += todayHour;
+        if (todayCode > 0) handoverHours += 0.5;
+
+        const dateKey = `${year}/${month}/${day}`;
+        if (holidayMap.has(dateKey)) {
+          holidayHours += Math.min(todayHour, 8);
+          monthHolidays.push(`${month}/${day} ${holidayMap.get(dateKey)}`);
+        }
+      }
+
+      const maintenanceHours = (workDict[month] || 0) * 8;
+      const gap = totalHours - maintenanceHours - holidayHours;
+      const isSubstitutable = gap >= 0;
+      const substituteInfo = isSubstitutable 
+        ? `可代班 ${46 - gap - handoverHours} HR` 
+        : `不可代班，少 ${Math.abs(gap)} HR`;
+
+      return { 
+        shift: shiftType, totalHours, handoverHours, holidayHours, maintenanceHours, substituteInfo, isSubstitutable, monthHolidays 
+      };
+    };
+
+    const App = () => {
+      const [rocYear, setRocYear] = useState(115);
+      const [month, setMonth] = useState(4);
+      const [parsedData, setParsedData] = useState({ workDict: {}, holidayMap: new Map() });
+      const [loading, setLoading] = useState(false);
+
+      useEffect(() => {
+        const fetchApi = async () => {
+          setLoading(true);
+          try {
+            const res = await fetch(`https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/${rocYear + 1911}.json`);
+            if(!res.ok) throw new Error("API 獲取失敗");
+            const data = await res.json();
+            setParsedData(processTaiwanCalendar(data));
+          } catch (err) {
+            console.error(err);
+            alert("載入行事曆失敗，請檢查網路連線。");
+          } finally {
+            setLoading(false);
+          }
+        };
+        fetchApi();
+      }, [rocYear]);
+
+      const shiftResults = useMemo(() => {
+        if(parsedData.holidayMap.size === 0) return [];
+        return ['A', 'B', 'C', 'D'].map(s => 
+          calculateShiftData(rocYear, month, s, parsedData.holidayMap, parsedData.workDict)
+        );
+      }, [rocYear, month, parsedData]);
+
+      return (
+        <div className="w-full">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-bold neon-text tracking-widest">✦ 台電輪班工時系統 ✦</h1>
+            <p className="text-gray-400 mt-2 text-sm tracking-widest font-mono">TAIPOWER SHIFT MANAGEMENT SYSTEM</p>
+          </div>
+
+          <div className="neon-border rounded-lg p-6 mb-8 bg-[#0a0c10]">
+            <div className="flex gap-8 items-end">
+              <div>
+                <label className="block text-sm text-gray-200 font-bold mb-3 tracking-widest">民國年份</label>
+                <input type="number" value={rocYear} onChange={e => setRocYear(Number(e.target.value))} 
+                       className="bg-[#12161c] border border-[#1e2530] rounded-md px-4 py-2 text-white outline-none focus:border-[#00F0FF] transition-colors w-28 text-center font-mono text-lg font-bold" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-200 font-bold mb-3 tracking-widest">月份</label>
+                <select value={month} onChange={e => setMonth(Number(e.target.value))}
+                        className="bg-[#12161c] border border-[#1e2530] rounded-md px-4 py-2 text-white outline-none focus:border-[#00F0FF] w-32 transition-colors text-center font-mono appearance-none text-lg font-bold">
+                  {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>{i+1} 月</option>)}
+                </select>
+              </div>
+              
+              <div className="ml-auto border-l-2 border-[#1e2530] pl-6 py-1">
+                <p className="text-[#FF9D00] opacity-80 text-xs font-mono tracking-widest leading-relaxed text-right">
+                  ⚠️ 適用於民國115年以後，<br/>日後有修正紀念日及節日實施條例，即不適用。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="neon-border rounded-lg overflow-hidden bg-[#0a0c10]">
+            {loading ? (
+              <div className="text-center py-24 text-[#00F0FF] animate-pulse tracking-widest text-lg font-mono font-bold">
+                [ 系統同步中 SYNCING API DATA... ]
+              </div>
+            ) : (
+              <table className="w-full text-center border-collapse">
+                <thead className="bg-[#12161c] text-gray-300 border-b border-[#1e2530]">
+                  <tr>
+                    <th className="py-5 font-bold tracking-widest text-base">班別</th>
+                    <th className="py-5 font-bold tracking-widest text-base">值班總工時</th>
+                    <th className="py-5 font-bold tracking-widest text-base">交接班時數</th>
+                    <th className="py-5 font-bold tracking-widest text-base">國定假日時數</th>
+                    <th className="py-5 font-bold tracking-widest text-base">保養時數</th>
+                    <th className="py-5 font-bold tracking-widest text-base">國定假日日期</th>
+                    <th className="py-5 font-bold tracking-widest text-base">代班資訊</th>
+                  </tr>
+                </thead>
+                <tbody className="font-mono">
+                  {shiftResults.map(row => (
+                    <tr key={row.shift} className="cyber-table-row">
+                      <td className="py-6 align-middle">
+                        <span className={`shift-badge color-${row.shift}`}>{row.shift}</span>
+                      </td>
+                      <td className="py-6 text-xl font-bold text-gray-100 align-middle">{row.totalHours.toFixed(1)} <span className="text-sm font-normal text-gray-500">HR</span></td>
+                      <td className="py-6 text-xl font-bold text-gray-100 align-middle">{row.handoverHours.toFixed(1)} <span className="text-sm font-normal text-gray-500">HR</span></td>
+                      <td className={`py-6 text-xl font-bold align-middle ${row.holidayHours === 0 ? 'text-[#FF3333]' : 'text-gray-100'}`}>
+                        {row.holidayHours.toFixed(1)} <span className="text-sm font-normal text-gray-500">HR</span>
+                      </td>
+                      <td className="py-6 text-xl font-bold text-gray-100 align-middle">{row.maintenanceHours.toFixed(1)} <span className="text-sm font-normal text-gray-500">HR</span></td>
+                      
+                      {/* 修改：字體放大至 text-xl，顏色直接連動 color-${row.shift} */}
+                      <td className="py-6 font-bold tracking-wider leading-loose align-middle">
+                        {row.monthHolidays.length > 0 ? (
+                          row.monthHolidays.map((holiday, idx) => (
+                            <div key={idx} className={`text-xl color-${row.shift}`}>{holiday}</div>
+                          ))
+                        ) : (
+                          <span className="text-xl text-gray-600 opacity-50">-</span>
+                        )}
+                      </td>
+
+                      <td className={`py-6 text-xl font-bold tracking-widest align-middle ${row.isSubstitutable ? `color-${row.shift}` : 'color-Alert'}`}>
+                        {row.isSubstitutable && <span className="text-sm border border-current px-2 py-1 rounded mr-2 opacity-80">可代班</span>}
+                        {row.substituteInfo.replace('可代班 ', '')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
