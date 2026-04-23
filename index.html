@@ -115,7 +115,7 @@
       // 手動模式解析：提取日期部分
       let manualHolidayDates = [];
       if (isManual) {
-        manualHolidayDates = manualHolidaysText.split(',').map(s => s.trim().split(' ')[0]);
+        manualHolidayDates = manualHolidaysText.split(/[,，]/).map(s => s.trim().split(' ')[0]);
       }
 
       for (let day = 1; day <= daysInMonth; day++) {
@@ -139,7 +139,7 @@
         } else {
           if (manualHolidayDates.includes(shortDateKey)) {
             holidayHours += Math.min(todayHour, 8);
-            monthHolidays.push(manualHolidaysText.split(',').find(s => s.trim().startsWith(shortDateKey)) || shortDateKey);
+            monthHolidays.push(manualHolidaysText.split(/[,，]/).find(s => s.trim().startsWith(shortDateKey)) || shortDateKey);
           }
         }
       }
