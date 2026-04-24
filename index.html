@@ -249,9 +249,13 @@
                 </div>
               )}
               
+              {/* 容器層：保留 md:ml-auto 確保整個區塊留在右邊 */}
               <div className="w-full md:w-auto md:ml-auto border-l-2 border-[#FF9D00]/50 pl-4 py-1 mt-2 md:mt-0">
-                <p className="text-[#FF9D00] opacity-90 text-[10px] md:text-xs font-mono tracking-wider leading-relaxed md:text-right">
-                  ⚠️ 適用於民國115年以後<br className="hidden md:block" />日後有修正紀念日及節日實施條例即不適用。
+              {/* 文字層：將 text-right 改為 text-left */}
+                <p className="text-[#FF9D00] opacity-90 text-[10px] md:text-xs font-mono tracking-wider leading-relaxed text-left">
+                  ⚠️ 適用於民國115年以後<br />
+                  日後有修正紀念日及節日實施條例<br />
+                  即不適用。
                 </p>
               </div>
             </div>
