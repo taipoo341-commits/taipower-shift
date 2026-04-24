@@ -23,7 +23,8 @@
     .neon-border { border: 1px solid rgba(0, 240, 255, 0.3); box-shadow: 0 0 15px rgba(0, 240, 255, 0.1), inset 0 0 20px rgba(0, 240, 255, 0.05); }
     .cyber-table-row { border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.2s ease-in-out; }
     .cyber-table-row:hover { background-color: rgba(0, 240, 255, 0.05); box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2); }
-    .shift-badge { padding: 6px 18px; border-radius: 6px; font-weight: 900; border: 2px solid; background: rgba(0,0,0,0.5); font-size: 1.25rem; }
+    .shift-badge { padding: 4px 12px; border-radius: 6px; font-weight: 900; border: 2px solid; background: rgba(0,0,0,0.5); font-size: 1.1rem; }
+    @media (min-width: 768px) { .shift-badge { padding: 6px 18px; font-size: 1.25rem; } }
     .color-A { color: #00F0FF; border-color: #00F0FF; box-shadow: 0 0 8px rgba(0, 240, 255, 0.4); text-shadow: 0 0 5px rgba(0, 240, 255, 0.8); }
     .color-B { color: #00FF41; border-color: #00FF41; box-shadow: 0 0 8px rgba(0, 255, 65, 0.4); text-shadow: 0 0 5px rgba(0, 255, 65, 0.8); }
     .color-C { color: #FF9D00; border-color: #FF9D00; box-shadow: 0 0 8px rgba(255, 157, 0, 0.4); text-shadow: 0 0 5px rgba(255, 157, 0, 0.8); }
@@ -109,7 +110,7 @@
         "(二值)", "(二值)", "(二連一)",   
         "(一值)", "(一值)", "(一值)",     
         "(空班)", "(空班)",               
-        "(三值第一天)", "(三值)", "(三值)", 
+        "(三值第一)", "(三值)", "(三值)", 
         "(空班)"                          
       ];
 
@@ -143,7 +144,7 @@
         if (!isManual) {
           if (holidayMap.has(dateKey)) {
             holidayHours += Math.min(todayHour, 8);
-            monthHolidays.push(`${month}/${day} ${holidayMap.get(dateKey)}${labelStr}`);
+            monthHolidays.push(`${shortDateKey} ${holidayMap.get(dateKey)}${labelStr}`);
           }
         } else {
           if (manualHolidayDates.includes(shortDateKey)) {
@@ -157,23 +158,20 @@
 
       const maintenanceHours = (isManual ? manualWorkingDays : (workDict[month] || 0)) * 8;
       
-      // === 核心算式 ===
       const gap = totalHours - maintenanceHours - holidayHours;
       const isSubstitutable = gap >= 0;
       
-      // 代班資訊
       const substituteInfo = isSubstitutable 
-        ? `可代班 ${46 - gap - handoverHours} HR` 
-        : `不可代班 少 ${Math.abs(gap)} HR`;
+        ? `可代 ${46 - gap - handoverHours}HR` 
+        : `少 ${Math.abs(gap)}HR`;
 
-      // 新增：比保養多 邏輯
       let diffMaintenance = "";
       if (gap > 0) {
-        diffMaintenance = `多 ${gap.toFixed(1)} HR`;
+        diffMaintenance = `多 ${gap.toFixed(1)}HR`;
       } else if (gap === 0) {
-        diffMaintenance = "跟保養一樣";
+        diffMaintenance = "無差異";
       } else {
-        diffMaintenance = `少 ${Math.abs(gap).toFixed(1)} HR`;
+        diffMaintenance = `少 ${Math.abs(gap).toFixed(1)}HR`;
       }
 
       return { 
@@ -240,44 +238,44 @@
         <div className="w-full">
           <div className="text-center mb-6 md:mb-10">
             <h1 className="text-2xl md:text-4xl font-bold neon-text tracking-widest mt-2 md:mt-0">✦ 複循環值班工時系統 ✦</h1>
-            <p className="text-gray-400 mt-2 text-xs md:text-sm tracking-widest font-mono uppercase">TAIPOWER SHIFT DASHBOARD v5.0</p>
+            <p className="text-gray-400 mt-2 text-[10px] md:text-sm tracking-widest font-mono uppercase">TAIPOWER SHIFT DASHBOARD v5.1</p>
           </div>
 
-          <div className="neon-border rounded-lg p-5 md:p-6 mb-6 md:mb-8 bg-[#0a0c10]">
-            <div className="flex flex-col md:flex-row gap-5 md:gap-8 items-start md:items-end">
-              <div className="flex gap-4 w-full md:w-auto relative">
+          <div className="neon-border rounded-lg p-4 md:p-6 mb-6 md:mb-8 bg-[#0a0c10]">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-end">
+              <div className="flex gap-3 w-full md:w-auto relative">
                 <div className="flex-1 md:flex-none">
-                  <label className="block text-xs md:text-sm text-gray-200 font-bold mb-2 tracking-widest">民國年份</label>
+                  <label className="block text-[10px] md:text-sm text-gray-200 font-bold mb-2 tracking-widest">民國年份</label>
                   <input type="number" value={rocYear} onChange={e => setRocYear(Number(e.target.value))} 
-                         className="w-full bg-[#12161c] border border-[#1e2530] rounded-md px-4 py-3 md:py-2 text-white outline-none focus:border-[#00F0FF] text-center font-mono text-base md:text-lg font-bold" />
+                         className="w-full bg-[#12161c] border border-[#1e2530] rounded-md px-2 py-2 md:px-4 md:py-2 text-white outline-none focus:border-[#00F0FF] text-center font-mono text-sm md:text-lg font-bold" />
                   {errorMsg && <div className="text-[#FF3333] text-[10px] mt-1 absolute font-bold whitespace-nowrap">{errorMsg}</div>}
                 </div>
                 <div className="flex-1 md:flex-none">
-                  <label className="block text-xs md:text-sm text-gray-200 font-bold mb-2 tracking-widest">月份</label>
+                  <label className="block text-[10px] md:text-sm text-gray-200 font-bold mb-2 tracking-widest">月份</label>
                   <select value={month} onChange={e => setMonth(Number(e.target.value))}
-                          className="w-full bg-[#12161c] border border-[#1e2530] rounded-md px-4 py-3 md:py-2 text-white outline-none focus:border-[#00F0FF] text-center font-mono appearance-none text-base md:text-lg font-bold">
+                          className="w-full bg-[#12161c] border border-[#1e2530] rounded-md px-2 py-2 md:px-4 md:py-2 text-white outline-none focus:border-[#00F0FF] text-center font-mono appearance-none text-sm md:text-lg font-bold">
                     {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>{i+1} 月</option>)}
                   </select>
                 </div>
               </div>
 
               {isManual && (
-                <div className="flex-1 w-full bg-red-950/20 border border-red-500/30 p-4 rounded-md neon-border shadow-inner">
-                   <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 w-full bg-red-950/20 border border-red-500/30 p-3 rounded-md neon-border shadow-inner">
+                   <div className="flex flex-col md:flex-row gap-3">
                     <div className="flex-1">
                       <label className="text-[10px] text-gray-400 block mb-1">本月保養上班天數</label>
                       <input type="number" value={manualWorkingDays} onChange={e=>setManualWorkingDays(Number(e.target.value))} className="w-full bg-black text-white text-xs p-2 border border-gray-800 rounded outline-none focus:border-red-500" />
                     </div>
                     <div className="flex-[2]">
-                      <label className="text-[10px] text-gray-400 block mb-1">假日清單 (格式: 月/日 節日名稱, EX: 4/4 兒童節 ,4/5 清明節)</label>
+                      <label className="text-[10px] text-gray-400 block mb-1">假日清單 (如: 4/4 兒童節)</label>
                       <input type="text" value={manualHolidaysText} onChange={e=>setManualHolidaysText(e.target.value)} className="w-full bg-black text-white text-xs p-2 border border-gray-800 rounded outline-none focus:border-red-500" />
                     </div>
                   </div>
                 </div>
               )}
               
-              <div className="w-full md:w-auto md:ml-auto border-l-2 border-[#FF9D00]/50 pl-4 py-1 mt-2 md:mt-0">
-                <p className="text-[#FF9D00] opacity-90 text-[10px] md:text-xs font-mono tracking-wider leading-relaxed text-left">
+              <div className="w-full md:w-auto md:ml-auto border-l-2 border-[#FF9D00]/50 pl-3 py-1 mt-1 md:mt-0">
+                <p className="text-[#FF9D00] opacity-90 text-[9px] md:text-xs font-mono tracking-wider leading-relaxed text-left">
                   ⚠️ 適用於民國115年以後<br />
                   日後有修正紀念日及節日實施條例<br />
                   即不適用。
@@ -292,40 +290,40 @@
                 [ 系統同步中 SYNCING API DATA... ]
               </div>
             ) : (
-              <div className="overflow-x-auto w-full hide-scrollbar">
-                {/* 移除了原本的 min-w-[900px]，讓精簡的四個欄位在手機上滿版舒適顯示 */}
-                <table className="w-full text-center border-collapse whitespace-nowrap">
+              <div className="w-full hide-scrollbar">
+                {/* 移除強制不換行 whitespace-nowrap，讓內容適應手機螢幕 */}
+                <table className="w-full text-center border-collapse">
                   <thead className="bg-[#12161c] text-gray-300 border-b border-[#1e2530]">
                     <tr>
-                      <th className="py-4 md:py-5 px-2 md:px-4 font-bold tracking-widest text-sm md:text-base">班別</th>
-                      <th className="py-4 md:py-5 px-2 md:px-4 font-bold tracking-widest text-sm md:text-base">代班資訊</th>
-                      <th className="py-4 md:py-5 px-2 md:px-4 font-bold tracking-widest text-sm md:text-base">國定假日日期</th>
-                      <th className="py-4 md:py-5 px-2 md:px-4 font-bold tracking-widest text-sm md:text-base">比保養多</th>
+                      <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base whitespace-nowrap">班別</th>
+                      <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base">代班資訊</th>
+                      <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base">國定假日</th>
+                      <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base">比保養多</th>
                     </tr>
                   </thead>
                   <tbody className="font-mono">
                     {shiftResults.map(row => (
                       <tr key={row.shift} className="cyber-table-row">
-                        <td className="py-6 px-2 md:px-4 align-middle">
+                        <td className="py-4 px-1 md:py-6 md:px-4 align-middle whitespace-nowrap">
                           <span className={`shift-badge color-${row.shift}`}>{row.shift}</span>
                         </td>
                         
-                        <td className={`py-6 px-2 md:px-4 text-base md:text-xl font-bold tracking-widest align-middle ${row.isSubstitutable ? `color-${row.shift}` : 'color-Alert'}`}>
-                          {row.isSubstitutable && <span className="text-xs border border-current px-2 py-1 rounded mr-2 opacity-80 hidden md:inline-block">可代班</span>}
-                          {row.isSubstitutable ? row.substituteInfo.replace('可代班 ', '') : row.substituteInfo}
+                        <td className={`py-4 px-1 md:py-6 md:px-4 text-[13px] md:text-xl font-bold tracking-widest align-middle ${row.isSubstitutable ? `color-${row.shift}` : 'color-Alert'}`}>
+                          {row.substituteInfo}
                         </td>
 
-                        <td className="py-6 px-2 md:px-4 font-bold tracking-wider leading-loose align-middle">
+                        {/* 這裡允許文字自然換行，解決撐破版面的問題 */}
+                        <td className="py-4 px-1 md:py-6 md:px-4 font-bold tracking-wider leading-relaxed align-middle text-left md:text-center">
                           {row.monthHolidays.length > 0 ? (
                             row.monthHolidays.map((holiday, idx) => (
-                              <div key={idx} className={`text-base md:text-xl color-${row.shift}`}>{holiday}</div>
+                              <div key={idx} className={`text-[12px] md:text-xl color-${row.shift} mb-1 md:mb-0`}>{holiday}</div>
                             ))
                           ) : (
-                            <span className="text-base md:text-xl text-gray-600 opacity-50">-</span>
+                            <span className="text-[12px] md:text-xl text-gray-600 opacity-50">-</span>
                           )}
                         </td>
 
-                        <td className={`py-6 px-2 md:px-4 text-base md:text-xl font-bold tracking-widest align-middle ${row.gap > 0 ? `color-${row.shift}` : (row.gap < 0 ? 'color-Alert' : 'text-gray-400')}`}>
+                        <td className={`py-4 px-1 md:py-6 md:px-4 text-[13px] md:text-xl font-bold tracking-widest align-middle whitespace-nowrap ${row.gap > 0 ? `color-${row.shift}` : (row.gap < 0 ? 'color-Alert' : 'text-gray-400')}`}>
                           {row.diffMaintenance}
                         </td>
                       </tr>
