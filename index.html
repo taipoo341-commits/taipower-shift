@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>複循環值班工時系統</title>
+  <title>複循環值班當月"代班時數"查詢系統</title>
   
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#0d0f12">
@@ -165,22 +165,11 @@
         ? `可代 ${46 - gap - handoverHours}HR` 
         : `少 ${Math.abs(gap)}HR`;
 
-      let diffMaintenance = "";
-      if (gap > 0) {
-        diffMaintenance = `多 ${gap.toFixed(1)}HR`;
-      } else if (gap === 0) {
-        diffMaintenance = "無差異";
-      } else {
-        diffMaintenance = `少 ${Math.abs(gap).toFixed(1)}HR`;
-      }
-
       return { 
         shift: shiftType, 
         substituteInfo, 
         isSubstitutable, 
-        monthHolidays, 
-        diffMaintenance,
-        gap 
+        monthHolidays
       };
     };
 
@@ -237,8 +226,8 @@
       return (
         <div className="w-full">
           <div className="text-center mb-6 md:mb-10">
-            <h1 className="text-2xl md:text-4xl font-bold neon-text tracking-widest mt-2 md:mt-0">✦ 複循環值班工時系統 ✦</h1>
-            <p className="text-gray-400 mt-2 text-[10px] md:text-sm tracking-widest font-mono uppercase">TAIPOWER SHIFT DASHBOARD v5.1</p>
+            <h1 className="text-2xl md:text-4xl font-bold neon-text tracking-widest mt-2 md:mt-0">✦ 複循環值班當月"代班時數"查詢系統 ✦</h1>
+            <p className="text-gray-400 mt-2 text-[10px] md:text-sm tracking-widest font-mono uppercase">TAIPOWER SHIFT SYSTEM</p>
           </div>
 
           <div className="neon-border rounded-lg p-4 md:p-6 mb-6 md:mb-8 bg-[#0a0c10]">
@@ -291,14 +280,12 @@
               </div>
             ) : (
               <div className="w-full hide-scrollbar">
-                {/* 移除強制不換行 whitespace-nowrap，讓內容適應手機螢幕 */}
                 <table className="w-full text-center border-collapse">
                   <thead className="bg-[#12161c] text-gray-300 border-b border-[#1e2530]">
                     <tr>
                       <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base whitespace-nowrap">班別</th>
                       <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base">代班資訊</th>
                       <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base">國定假日</th>
-                      <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base">比保養多</th>
                     </tr>
                   </thead>
                   <tbody className="font-mono">
@@ -312,7 +299,6 @@
                           {row.substituteInfo}
                         </td>
 
-                        {/* 這裡允許文字自然換行，解決撐破版面的問題 */}
                         <td className="py-4 px-1 md:py-6 md:px-4 font-bold tracking-wider leading-relaxed align-middle text-left md:text-center">
                           {row.monthHolidays.length > 0 ? (
                             row.monthHolidays.map((holiday, idx) => (
@@ -321,10 +307,6 @@
                           ) : (
                             <span className="text-[12px] md:text-xl text-gray-600 opacity-50">-</span>
                           )}
-                        </td>
-
-                        <td className={`py-4 px-1 md:py-6 md:px-4 text-[13px] md:text-xl font-bold tracking-widest align-middle whitespace-nowrap ${row.gap > 0 ? `color-${row.shift}` : (row.gap < 0 ? 'color-Alert' : 'text-gray-400')}`}>
-                          {row.diffMaintenance}
                         </td>
                       </tr>
                     ))}
