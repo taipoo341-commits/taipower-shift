@@ -33,7 +33,7 @@
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="min-h-screen p-4 md:p-8 flex justify-center">
+<body class="min-h-screen p-2 md:p-8 flex justify-center">
 
   <div id="root" class="w-full max-w-7xl"></div>
 
@@ -103,15 +103,14 @@
     const calculateShiftData = (rocYear, month, shiftType, holidayMap, workDict, isManual, manualWorkingDays, manualHolidaysText) => {
       const year = rocYear + 1911;
       
-      // === 核心陣列與新增的標籤對照表 ===
       const cycleHours = [8, 8, 6.5, 9, 9, 9, 0, 0, 8.5, 7, 7, 0];
       const cycleCodes = [2, 2, 2, 1, 1, 1, 0, 0, 3, 3, 3, 0];
       const cycleLabels = [
-        "(二值)", "(二值)", "(二連一)",   // Index 0, 1, 2
-        "(一值)", "(一值)", "(一值)",     // Index 3, 4, 5
-        "(空班)", "(空班)",               // Index 6, 7
-        "(三值第一天)", "(三值)", "(三值)", // Index 8, 9, 10
-        "(空班)"                          // Index 11
+        "(二值)", "(二值)", "(二連一)",   
+        "(一值)", "(一值)", "(一值)",     
+        "(空班)", "(空班)",               
+        "(三值第一天)", "(三值)", "(三值)", 
+        "(空班)"                          
       ];
 
       const offsets = { 'A': 0, 'B': 9, 'C': 6, 'D': 3 };
@@ -122,7 +121,6 @@
       let totalHours = 0, handoverHours = 0, holidayHours = 0;
       let monthHolidays = []; 
 
-      // 手動模式解析：提取日期部分
       let manualHolidayDates = [];
       if (isManual) {
         manualHolidayDates = manualHolidaysText.split(/[,，]/).map(s => s.trim().split(' ')[0]);
@@ -134,8 +132,6 @@
         const cycleIndex = ((diffDays % 12) + 12 + offset) % 12;
         const todayHour = cycleHours[cycleIndex];
         const todayCode = cycleCodes[cycleIndex];
-        
-        // 取得當天的中文標籤
         const labelStr = cycleLabels[cycleIndex];
 
         totalHours += todayHour;
@@ -144,7 +140,6 @@
         const dateKey = `${year}/${month}/${day}`;
         const shortDateKey = `${month}/${day}`;
 
-        // 將假日名稱與標籤無縫結合
         if (!isManual) {
           if (holidayMap.has(dateKey)) {
             holidayHours += Math.min(todayHour, 8);
@@ -161,22 +156,41 @@
       }
 
       const maintenanceHours = (isManual ? manualWorkingDays : (workDict[month] || 0)) * 8;
+      
+      // === 核心算式 ===
       const gap = totalHours - maintenanceHours - holidayHours;
       const isSubstitutable = gap >= 0;
+      
+      // 代班資訊
       const substituteInfo = isSubstitutable 
         ? `可代班 ${46 - gap - handoverHours} HR` 
         : `不可代班 少 ${Math.abs(gap)} HR`;
 
-      return { shift: shiftType, totalHours, handoverHours, holidayHours, maintenanceHours, substituteInfo, isSubstitutable, monthHolidays };
+      // 新增：比保養多 邏輯
+      let diffMaintenance = "";
+      if (gap > 0) {
+        diffMaintenance = `多 ${gap.toFixed(1)} HR`;
+      } else if (gap === 0) {
+        diffMaintenance = "跟保養一樣";
+      } else {
+        diffMaintenance = `少 ${Math.abs(gap).toFixed(1)} HR`;
+      }
+
+      return { 
+        shift: shiftType, 
+        substituteInfo, 
+        isSubstitutable, 
+        monthHolidays, 
+        diffMaintenance,
+        gap 
+      };
     };
 
     const App = () => {
-       // 取得現在的西元年與月份
        const now = new Date();
        const currentYear = now.getFullYear(); 
        const currentMonth = now.getMonth() + 1; 
 
-      // 將西元轉為民國，並設定為初始值
       const [rocYear, setRocYear] = useState(currentYear - 1911); 
       const [month, setMonth] = useState(currentMonth);
       const [parsedData, setParsedData] = useState({ workDict: {}, holidayMap: new Map() });
@@ -184,7 +198,6 @@
       const [isManual, setIsManual] = useState(false);
       const [errorMsg, setErrorMsg] = useState("");
       
-      // 手動模式狀態
       const [manualWorkingDays, setManualWorkingDays] = useState(20);
       const [manualHolidaysText, setManualHolidaysText] = useState("");
 
@@ -217,7 +230,6 @@
       }, [rocYear]);
 
       const shiftResults = useMemo(() => {
-        // 如果還在加載且不是手動模式，先不計算
         if(loading && !isManual) return [];
         return ['A', 'B', 'C', 'D'].map(s => 
           calculateShiftData(rocYear, month, s, parsedData.holidayMap, parsedData.workDict, isManual, manualWorkingDays, manualHolidaysText)
@@ -228,7 +240,7 @@
         <div className="w-full">
           <div className="text-center mb-6 md:mb-10">
             <h1 className="text-2xl md:text-4xl font-bold neon-text tracking-widest mt-2 md:mt-0">✦ 複循環值班工時系統 ✦</h1>
-            <p className="text-gray-400 mt-2 text-xs md:text-sm tracking-widest font-mono uppercase">TAIPOWER SHIFT SYSTEM </p>
+            <p className="text-gray-400 mt-2 text-xs md:text-sm tracking-widest font-mono uppercase">TAIPOWER SHIFT DASHBOARD v5.0</p>
           </div>
 
           <div className="neon-border rounded-lg p-5 md:p-6 mb-6 md:mb-8 bg-[#0a0c10]">
@@ -249,7 +261,6 @@
                 </div>
               </div>
 
-              {/* 手動修正區塊：僅在抓不到資料時自動浮現 */}
               {isManual && (
                 <div className="flex-1 w-full bg-red-950/20 border border-red-500/30 p-4 rounded-md neon-border shadow-inner">
                    <div className="flex flex-col md:flex-row gap-4">
@@ -265,9 +276,7 @@
                 </div>
               )}
               
-              {/* 容器層：保留 md:ml-auto 確保整個區塊留在右邊 */}
               <div className="w-full md:w-auto md:ml-auto border-l-2 border-[#FF9D00]/50 pl-4 py-1 mt-2 md:mt-0">
-              {/* 文字層：將 text-right 改為 text-left */}
                 <p className="text-[#FF9D00] opacity-90 text-[10px] md:text-xs font-mono tracking-wider leading-relaxed text-left">
                   ⚠️ 適用於民國115年以後<br />
                   日後有修正紀念日及節日實施條例<br />
@@ -284,44 +293,40 @@
               </div>
             ) : (
               <div className="overflow-x-auto w-full hide-scrollbar">
-                <table className="w-full text-center border-collapse whitespace-nowrap min-w-[900px]">
+                {/* 移除了原本的 min-w-[900px]，讓精簡的四個欄位在手機上滿版舒適顯示 */}
+                <table className="w-full text-center border-collapse whitespace-nowrap">
                   <thead className="bg-[#12161c] text-gray-300 border-b border-[#1e2530]">
                     <tr>
-                      <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">班別</th>
-                      <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">值班總工時</th>
-                      <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">交接班時數</th>
-                      <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">國定假日時數</th>
-                      <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">保養時數</th>
-                      <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">國定假日日期</th>
-                      <th className="py-4 md:py-5 px-4 font-bold tracking-widest text-sm md:text-base">代班資訊</th>
+                      <th className="py-4 md:py-5 px-2 md:px-4 font-bold tracking-widest text-sm md:text-base">班別</th>
+                      <th className="py-4 md:py-5 px-2 md:px-4 font-bold tracking-widest text-sm md:text-base">代班資訊</th>
+                      <th className="py-4 md:py-5 px-2 md:px-4 font-bold tracking-widest text-sm md:text-base">國定假日日期</th>
+                      <th className="py-4 md:py-5 px-2 md:px-4 font-bold tracking-widest text-sm md:text-base">比保養多</th>
                     </tr>
                   </thead>
                   <tbody className="font-mono">
                     {shiftResults.map(row => (
                       <tr key={row.shift} className="cyber-table-row">
-                        <td className="py-6 px-4 align-middle">
+                        <td className="py-6 px-2 md:px-4 align-middle">
                           <span className={`shift-badge color-${row.shift}`}>{row.shift}</span>
                         </td>
-                        <td className="py-6 px-4 text-xl font-bold text-gray-100 align-middle">{row.totalHours.toFixed(1)} <span className="text-xs text-gray-500 font-normal">HR</span></td>
-                        <td className="py-6 px-4 text-xl font-bold text-gray-100 align-middle">{row.handoverHours.toFixed(1)} <span className="text-sm font-normal text-gray-500">HR</span></td>
-                        <td className={`py-6 px-4 text-xl font-bold align-middle ${row.holidayHours === 0 ? 'text-[#FF3333]' : 'text-gray-100'}`}>
-                          {row.holidayHours.toFixed(1)} <span className="text-sm font-normal text-gray-500">HR</span>
-                        </td>
-                        <td className="py-6 px-4 text-xl font-bold text-gray-100 align-middle">{row.maintenanceHours.toFixed(1)} <span className="text-sm font-normal text-gray-500">HR</span></td>
                         
-                        <td className="py-6 px-4 font-bold tracking-wider leading-loose align-middle">
+                        <td className={`py-6 px-2 md:px-4 text-base md:text-xl font-bold tracking-widest align-middle ${row.isSubstitutable ? `color-${row.shift}` : 'color-Alert'}`}>
+                          {row.isSubstitutable && <span className="text-xs border border-current px-2 py-1 rounded mr-2 opacity-80 hidden md:inline-block">可代班</span>}
+                          {row.isSubstitutable ? row.substituteInfo.replace('可代班 ', '') : row.substituteInfo}
+                        </td>
+
+                        <td className="py-6 px-2 md:px-4 font-bold tracking-wider leading-loose align-middle">
                           {row.monthHolidays.length > 0 ? (
                             row.monthHolidays.map((holiday, idx) => (
-                              <div key={idx} className={`text-xl color-${row.shift}`}>{holiday}</div>
+                              <div key={idx} className={`text-base md:text-xl color-${row.shift}`}>{holiday}</div>
                             ))
                           ) : (
-                            <span className="text-xl text-gray-600 opacity-50">-</span>
+                            <span className="text-base md:text-xl text-gray-600 opacity-50">-</span>
                           )}
                         </td>
 
-                        <td className={`py-6 px-4 text-lg md:text-xl font-bold tracking-widest align-middle ${row.isSubstitutable ? `color-${row.shift}` : 'color-Alert'}`}>
-                          {row.isSubstitutable && <span className="text-sm border border-current px-2 py-1 rounded mr-2 opacity-80">可代班</span>}
-                          {row.isSubstitutable ? row.substituteInfo.replace('可代班 ', '') : row.substituteInfo}
+                        <td className={`py-6 px-2 md:px-4 text-base md:text-xl font-bold tracking-widest align-middle ${row.gap > 0 ? `color-${row.shift}` : (row.gap < 0 ? 'color-Alert' : 'text-gray-400')}`}>
+                          {row.diffMaintenance}
                         </td>
                       </tr>
                     ))}
