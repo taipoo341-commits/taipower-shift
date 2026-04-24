@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台電輪班工時系統</title>
+  <title>複循環值班工時系統</title>
   
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#0d0f12">
@@ -102,8 +102,18 @@
 
     const calculateShiftData = (rocYear, month, shiftType, holidayMap, workDict, isManual, manualWorkingDays, manualHolidaysText) => {
       const year = rocYear + 1911;
+      
+      // === 核心陣列與新增的標籤對照表 ===
       const cycleHours = [8, 8, 6.5, 9, 9, 9, 0, 0, 8.5, 7, 7, 0];
       const cycleCodes = [2, 2, 2, 1, 1, 1, 0, 0, 3, 3, 3, 0];
+      const cycleLabels = [
+        "(二值)", "(二值)", "(二連一)",   // Index 0, 1, 2
+        "(一值)", "(一值)", "(一值)",     // Index 3, 4, 5
+        "(空班)", "(空班)",               // Index 6, 7
+        "(三值第一天)", "(三值)", "(三值)", // Index 8, 9, 10
+        "(空班)"                          // Index 11
+      ];
+
       const offsets = { 'A': 0, 'B': 9, 'C': 6, 'D': 3 };
       const offset = offsets[shiftType];
       const daysInMonth = new Date(year, month, 0).getDate();
@@ -124,6 +134,9 @@
         const cycleIndex = ((diffDays % 12) + 12 + offset) % 12;
         const todayHour = cycleHours[cycleIndex];
         const todayCode = cycleCodes[cycleIndex];
+        
+        // 取得當天的中文標籤
+        const labelStr = cycleLabels[cycleIndex];
 
         totalHours += todayHour;
         if (todayCode > 0) handoverHours += 0.5;
@@ -131,15 +144,18 @@
         const dateKey = `${year}/${month}/${day}`;
         const shortDateKey = `${month}/${day}`;
 
+        // 將假日名稱與標籤無縫結合
         if (!isManual) {
           if (holidayMap.has(dateKey)) {
             holidayHours += Math.min(todayHour, 8);
-            monthHolidays.push(`${month}/${day} ${holidayMap.get(dateKey)}`);
+            monthHolidays.push(`${month}/${day} ${holidayMap.get(dateKey)}${labelStr}`);
           }
         } else {
           if (manualHolidayDates.includes(shortDateKey)) {
             holidayHours += Math.min(todayHour, 8);
-            monthHolidays.push(manualHolidaysText.split(/[,，]/).find(s => s.trim().startsWith(shortDateKey)) || shortDateKey);
+            const foundText = manualHolidaysText.split(/[,，]/).find(s => s.trim().startsWith(shortDateKey));
+            const cleanText = (foundText || shortDateKey).trim();
+            monthHolidays.push(`${cleanText}${labelStr}`);
           }
         }
       }
@@ -157,8 +173,8 @@
     const App = () => {
        // 取得現在的西元年與月份
        const now = new Date();
-       const currentYear = now.getFullYear(); // 例如 2026
-       const currentMonth = now.getMonth() + 1; // 0-11 轉為 1-12
+       const currentYear = now.getFullYear(); 
+       const currentMonth = now.getMonth() + 1; 
 
       // 將西元轉為民國，並設定為初始值
       const [rocYear, setRocYear] = useState(currentYear - 1911); 
@@ -211,7 +227,7 @@
       return (
         <div className="w-full">
           <div className="text-center mb-6 md:mb-10">
-            <h1 className="text-2xl md:text-4xl font-bold neon-text tracking-widest mt-2 md:mt-0">✦ 台電輪班工時系統 ✦</h1>
+            <h1 className="text-2xl md:text-4xl font-bold neon-text tracking-widest mt-2 md:mt-0">✦ 複循環值班工時系統 ✦</h1>
             <p className="text-gray-400 mt-2 text-xs md:text-sm tracking-widest font-mono uppercase">TAIPOWER SHIFT SYSTEM </p>
           </div>
 
