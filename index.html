@@ -19,6 +19,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
+    /* 定義全域變數系統 */
     :root {
       --bg-body: #0d0f12;
       --bg-card: #0a0c10;
@@ -50,10 +51,10 @@
 
     body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Segoe UI', system-ui, sans-serif; transition: all 0.3s ease; }
     
-    /* 標題區域優化：增加 Padding 避開右上角按鈕 */
+    /* 標題區域優化：確保不被右上角按鈕遮蔽 */
     .header-area {
       position: relative;
-      padding: 1.5rem 3.5rem 1rem 3.5rem; /* 上, 右, 下, 左 */
+      padding: 1.5rem 3.5rem 1rem 3.5rem;
       text-align: center;
     }
 
@@ -75,26 +76,13 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* 主題切換按鈕：優化為手機友善圖示版 */
+    /* 主題切換按鈕：純圖示浮動版 */
     .theme-toggle {
-      position: fixed; 
-      top: 1rem; 
-      right: 1rem; 
-      width: 42px; 
-      height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%; 
-      background: var(--bg-card); 
-      border: 1px solid var(--border-color);
-      color: var(--text-main); 
-      cursor: pointer; 
-      z-index: 100; 
-      font-size: 1.2rem;
-      box-shadow: var(--neon-shadow);
-      transition: all 0.2s ease;
-      backdrop-filter: blur(4px); /* 毛玻璃效果 */
+      position: fixed; top: 1rem; right: 1rem; width: 42px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border-color);
+      color: var(--text-main); cursor: pointer; z-index: 100; font-size: 1.2rem;
+      box-shadow: var(--neon-shadow); transition: all 0.2s ease; backdrop-filter: blur(4px);
     }
     .theme-toggle:active { transform: scale(0.9); }
   </style>
@@ -106,7 +94,7 @@
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
-    // --- 計算邏輯保持不變 ---
+    // --- Data Processing ---
     const processTaiwanCalendar = (jsonData) => {
       let workDict = {};
       let holidayMap = new Map(); 
@@ -199,7 +187,13 @@
       const now = new Date();
       const [rocYear, setRocYear] = useState(now.getFullYear() - 1911); 
       const [month, setMonth] = useState(now.getMonth() + 1);
-      const [isDarkMode, setIsDarkMode] = useState(true);
+
+      // 【記憶功能】：初始化時讀取 localStorage
+      const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme === null ? true : savedTheme === 'dark';
+      });
+
       const [parsedData, setParsedData] = useState({ workDict: {}, holidayMap: new Map() });
       const [loading, setLoading] = useState(false);
       const [isManual, setIsManual] = useState(false);
@@ -207,8 +201,10 @@
       const [manualWorkingDays, setManualWorkingDays] = useState(20);
       const [manualHolidaysText, setManualHolidaysText] = useState("");
 
+      // 【記憶功能】：主題切換時寫入 localStorage
       useEffect(() => {
         document.body.classList.toggle('light-mode', !isDarkMode);
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
       }, [isDarkMode]);
 
       useEffect(() => {
@@ -248,7 +244,6 @@
 
       return (
         <div className="w-full">
-          {/* 主題切換鈕：純圖示，不遮蔽標題 */}
           <button className="theme-toggle" onClick={() => setIsDarkMode(!isDarkMode)}>
             {isDarkMode ? "☀️" : "🌙"}
           </button>
@@ -273,7 +268,7 @@
                   </select>
                 </div>
               </div>
-
+              
               {isManual && (
                 <div className="flex-1 w-full bg-[var(--color-Alert)]/10 border border-[var(--color-Alert)]/30 p-3 rounded-md shadow-inner">
                    <div className="flex flex-col md:flex-row gap-3">
@@ -288,7 +283,7 @@
                   </div>
                 </div>
               )}
-              
+
               <div className="w-full md:w-auto md:ml-auto border-l-2 border-[var(--color-C)]/50 pl-3 py-1 mt-1 md:mt-0">
                 <p className="text-[var(--color-C)] opacity-90 text-[9px] md:text-xs font-mono tracking-wider leading-relaxed text-left">
                   ⚠️ 適用於民國115年以後<br />日後有修正紀念日及節日實施條例即不適用。
