@@ -19,27 +19,80 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
+    /* 定義全域變數系統 */
+    :root {
+      /* 深色模式 (預設) */
+      --bg-body: #0d0f12;
+      --bg-card: #0a0c10;
+      --bg-input: #12161c;
+      --text-main: #e0e0e0;
+      --text-dim: #9ca3af;
+      --border-color: rgba(0, 240, 255, 0.3);
+      --border-sub: rgba(255, 255, 255, 0.05);
+      --hover-bg: rgba(0, 240, 255, 0.05);
+      --neon-glow: 0 0 10px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.4);
+      --neon-shadow: 0 0 15px rgba(0, 240, 255, 0.1), inset 0 0 20px rgba(0, 240, 255, 0.05);
+      
+      --color-A: #00F0FF;
+      --color-B: #00FF41;
+      --color-C: #FF9D00;
+      --color-D: #FFDD00;
+      --color-Alert: #FF3333;
+    }
+
+    body.light-mode {
+      /* 淺色模式 */
+      --bg-body: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-input: #f8fafc;
+      --text-main: #0f172a;
+      --text-dim: #64748b;
+      --border-color: #cbd5e1;
+      --border-sub: #e2e8f0;
+      --hover-bg: #f1f5f9;
+      --neon-glow: none;
+      --neon-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      
+      /* 調深顏色確保白底可讀性 */
+      --color-A: #0891b2;
+      --color-B: #16a34a;
+      --color-C: #ea580c;
+      --color-D: #ca8a04;
+      --color-Alert: #dc2626;
+    }
+
     @font-face {
       font-family: 'RemachineScript';
       src: url('./RemachineScript_Personal_Use.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
+      font-weight: normal; font-style: normal;
     }
 
-    body { background-color: #0d0f12; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .neon-text { color: #00F0FF; text-shadow: 0 0 10px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.4); }
-    .neon-border { border: 1px solid rgba(0, 240, 255, 0.3); box-shadow: 0 0 15px rgba(0, 240, 255, 0.1), inset 0 0 20px rgba(0, 240, 255, 0.05); }
-    .cyber-table-row { border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.2s ease-in-out; }
-    .cyber-table-row:hover { background-color: rgba(0, 240, 255, 0.05); box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2); }
-    .shift-badge { padding: 4px 12px; border-radius: 6px; font-weight: 900; border: 2px solid; background: rgba(0,0,0,0.5); font-size: 1.1rem; }
-    @media (min-width: 768px) { .shift-badge { padding: 6px 18px; font-size: 1.25rem; } }
-    .color-A { color: #00F0FF; border-color: #00F0FF; box-shadow: 0 0 8px rgba(0, 240, 255, 0.4); text-shadow: 0 0 5px rgba(0, 240, 255, 0.8); }
-    .color-B { color: #00FF41; border-color: #00FF41; box-shadow: 0 0 8px rgba(0, 255, 65, 0.4); text-shadow: 0 0 5px rgba(0, 255, 65, 0.8); }
-    .color-C { color: #FF9D00; border-color: #FF9D00; box-shadow: 0 0 8px rgba(255, 157, 0, 0.4); text-shadow: 0 0 5px rgba(255, 157, 0, 0.8); }
-    .color-D { color: #FFDD00; border-color: #FFDD00; box-shadow: 0 0 8px rgba(255, 221, 0, 0.4); text-shadow: 0 0 5px rgba(255, 221, 0, 0.8); }
-    .color-Alert { color: #FF3333; text-shadow: 0 0 8px rgba(255, 51, 51, 0.8); }
+    body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Segoe UI', system-ui, sans-serif; transition: all 0.3s ease; }
+    .neon-text { color: var(--color-A); text-shadow: var(--neon-glow); }
+    .neon-border { border: 1px solid var(--border-color); box-shadow: var(--neon-shadow); background-color: var(--bg-card); }
+    
+    .cyber-table-row { border-bottom: 1px solid var(--border-sub); transition: all 0.2s ease; }
+    .cyber-table-row:hover { background-color: var(--hover-bg); }
+    
+    .shift-badge { padding: 4px 12px; border-radius: 6px; font-weight: 900; border: 2px solid; font-size: 1.1rem; background: rgba(0,0,0,0.1); }
+    body:not(.light-mode) .shift-badge { background: rgba(0,0,0,0.5); }
+    
+    .color-A { color: var(--color-A); border-color: var(--color-A); }
+    .color-B { color: var(--color-B); border-color: var(--color-B); }
+    .color-C { color: var(--color-C); border-color: var(--color-C); }
+    .color-D { color: var(--color-D); border-color: var(--color-D); }
+    .color-Alert { color: var(--color-Alert); }
+
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* 主題切換按鈕 */
+    .theme-toggle {
+      position: fixed; top: 1rem; right: 1rem; padding: 0.5rem 1rem;
+      border-radius: 9999px; background: var(--bg-card); border: 1px solid var(--border-color);
+      color: var(--text-main); cursor: pointer; z-index: 100; font-size: 0.8rem; font-weight: bold;
+      box-shadow: var(--neon-shadow);
+    }
   </style>
 </head>
 <body class="min-h-screen p-2 md:p-8 flex justify-center">
@@ -49,6 +102,7 @@
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
+    // --- Data Processing Functions (保持原邏輯) ---
     const processTaiwanCalendar = (jsonData) => {
       let workDict = {};
       let holidayMap = new Map(); 
@@ -111,17 +165,9 @@
 
     const calculateShiftData = (rocYear, month, shiftType, holidayMap, workDict, isManual, manualWorkingDays, manualHolidaysText) => {
       const year = rocYear + 1911;
-      
       const cycleHours = [8, 8, 6.5, 9, 9, 9, 0, 0, 8.5, 7, 7, 0];
       const cycleCodes = [2, 2, 2, 1, 1, 1, 0, 0, 3, 3, 3, 0];
-      const cycleLabels = [
-        "(二值)", "(二值)", "(二連一)",   
-        "(一值)", "(一值)", "(一值)",     
-        "(空班)", "(空班)",                
-        "(三值第一)", "(三值)", "(三值)", 
-        "(空班)"                          
-      ];
-
+      const cycleLabels = ["(二值)", "(二值)", "(二連一)", "(一值)", "(一值)", "(一值)", "(空班)", "(空班)", "(三值第一)", "(三值)", "(三值)", "(空班)"];
       const offsets = { 'A': 0, 'B': 9, 'C': 6, 'D': 3 };
       const offset = offsets[shiftType];
       const daysInMonth = new Date(year, month, 0).getDate();
@@ -165,62 +211,48 @@
       }
 
       const maintenanceHours = (isManual ? manualWorkingDays : (workDict[month] || 0)) * 8;
-      
       const gap = totalHours - maintenanceHours - holidayHours;
       const isSubstitutable = gap >= 0;
-      
-      const substituteInfo = isSubstitutable 
-        ? `可代 ${46 - gap - handoverHours}HR` 
-        : `少 ${Math.abs(gap)}HR`;
+      const substituteInfo = isSubstitutable ? `可代 ${46 - gap - handoverHours}HR` : `少 ${Math.abs(gap)}HR`;
 
-      return { 
-        shift: shiftType, 
-        substituteInfo, 
-        isSubstitutable, 
-        monthHolidays,
-        gap
-      };
+      return { shift: shiftType, substituteInfo, isSubstitutable, monthHolidays, gap };
     };
 
     const App = () => {
-       const now = new Date();
-       const currentYear = now.getFullYear(); 
-       const currentMonth = now.getMonth() + 1; 
-
-      const [rocYear, setRocYear] = useState(currentYear - 1911); 
-      const [month, setMonth] = useState(currentMonth);
+      const now = new Date();
+      const [rocYear, setRocYear] = useState(now.getFullYear() - 1911); 
+      const [month, setMonth] = useState(now.getMonth() + 1);
+      const [isDarkMode, setIsDarkMode] = useState(true);
       const [parsedData, setParsedData] = useState({ workDict: {}, holidayMap: new Map() });
       const [loading, setLoading] = useState(false);
       const [isManual, setIsManual] = useState(false);
       const [errorMsg, setErrorMsg] = useState("");
-      
       const [manualWorkingDays, setManualWorkingDays] = useState(20);
       const [manualHolidaysText, setManualHolidaysText] = useState("");
+
+      // 切換主題 Effect
+      useEffect(() => {
+        if (isDarkMode) document.body.classList.remove('light-mode');
+        else document.body.classList.add('light-mode');
+      }, [isDarkMode]);
 
       useEffect(() => {
         if (rocYear < 100 || rocYear > 200) {
           setErrorMsg("請輸入有效年份 (100-200)");
           return;
         }
-
         const fetchApi = async () => {
-          setLoading(true);
-          setErrorMsg("");
-          setIsManual(false);
+          setLoading(true); setErrorMsg(""); setIsManual(false);
           try {
             const res = await fetch(`https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/${rocYear + 1911}.json`);
             if(!res.ok) throw new Error("無該年資料");
             const data = await res.json();
             setParsedData(processTaiwanCalendar(data));
           } catch (err) {
-            console.error(err);
             setErrorMsg(`⚠️ 查無民國 ${rocYear} 年資料，已切換手動模式`);
             setIsManual(true);
-          } finally {
-            setLoading(false);
-          }
+          } finally { setLoading(false); }
         };
-
         const timer = setTimeout(fetchApi, 300);
         return () => clearTimeout(timer);
       }, [rocYear]);
@@ -234,16 +266,11 @@
 
       const yearlyShortageData = useMemo(() => {
         if(loading || isManual || Object.keys(parsedData.workDict).length === 0) return null;
-        
         const summary = { A: [], B: [], C: [], D: [] };
-        const shifts = ['A', 'B', 'C', 'D'];
-
         for (let m = 1; m <= 12; m++) {
-          shifts.forEach(s => {
+          ['A', 'B', 'C', 'D'].forEach(s => {
             const res = calculateShiftData(rocYear, m, s, parsedData.holidayMap, parsedData.workDict, false, 0, "");
-            if (res.gap < 0) {
-              summary[s].push(`${m}月少${Math.abs(res.gap)}HR`);
-            }
+            if (res.gap < 0) summary[s].push(`${m}月少${Math.abs(res.gap)}HR`);
           });
         }
         return summary;
@@ -251,46 +278,51 @@
 
       return (
         <div className="w-full">
+          {/* 主題切換鈕 */}
+          <button className="theme-toggle" onClick={() => setIsDarkMode(!isDarkMode)}>
+            {isDarkMode ? "☀️ 切換淺色" : "🌙 切換深色"}
+          </button>
+
           <div className="text-center mb-6 md:mb-10">
             <h1 className="text-2xl md:text-4xl font-bold neon-text tracking-widest mt-2 md:mt-0">✦ 複值"代班時數"查詢系統 ✦</h1>
-            <p className="text-gray-400 mt-2 text-[10px] md:text-sm tracking-widest font-mono uppercase">TAIPOWER SHIFT SYSTEM</p>
+            <p className="text-[var(--text-dim)] mt-2 text-[10px] md:text-sm tracking-widest font-mono uppercase">TAIPOWER SHIFT SYSTEM</p>
           </div>
 
-          <div className="neon-border rounded-lg p-4 md:p-6 mb-6 md:mb-8 bg-[#0a0c10]">
+          <div className="neon-border rounded-lg p-4 md:p-6 mb-6 md:mb-8">
             <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-end">
               <div className="flex gap-3 w-full md:w-auto relative">
                 <div className="flex-1 md:flex-none">
-                  <label className="block text-[10px] md:text-sm text-gray-200 font-bold mb-2 tracking-widest">民國年份</label>
+                  <label className="block text-[10px] md:text-sm text-[var(--text-main)] font-bold mb-2 tracking-widest">民國年份</label>
                   <input type="number" value={rocYear} onChange={e => setRocYear(Number(e.target.value))} 
-                         className="w-full bg-[#12161c] border border-[#1e2530] rounded-md px-2 py-2 md:px-4 md:py-2 text-white outline-none focus:border-[#00F0FF] text-center font-mono text-sm md:text-lg font-bold" />
-                  {errorMsg && <div className="text-[#FF3333] text-[10px] mt-1 absolute font-bold whitespace-nowrap">{errorMsg}</div>}
+                         className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-md px-2 py-2 md:px-4 md:py-2 text-[var(--text-main)] outline-none focus:border-[var(--color-A)] text-center font-mono text-sm md:text-lg font-bold" />
+                  {errorMsg && <div className="text-[var(--color-Alert)] text-[10px] mt-1 absolute font-bold whitespace-nowrap">{errorMsg}</div>}
                 </div>
                 <div className="flex-1 md:flex-none">
-                  <label className="block text-[10px] md:text-sm text-gray-200 font-bold mb-2 tracking-widest">月份</label>
+                  <label className="block text-[10px] md:text-sm text-[var(--text-main)] font-bold mb-2 tracking-widest">月份</label>
                   <select value={month} onChange={e => setMonth(Number(e.target.value))}
-                          className="w-full bg-[#12161c] border border-[#1e2530] rounded-md px-2 py-2 md:px-4 md:py-2 text-white outline-none focus:border-[#00F0FF] text-center font-mono appearance-none text-sm md:text-lg font-bold">
+                          className="w-full bg-[var(--bg-input)] border border-[var(--border-color)] rounded-md px-2 py-2 md:px-4 md:py-2 text-[var(--text-main)] outline-none focus:border-[var(--color-A)] text-center font-mono appearance-none text-sm md:text-lg font-bold">
                     {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>{i+1} 月</option>)}
                   </select>
                 </div>
               </div>
 
               {isManual && (
-                <div className="flex-1 w-full bg-red-950/20 border border-red-500/30 p-3 rounded-md neon-border shadow-inner">
+                <div className="flex-1 w-full bg-[var(--color-Alert)]/10 border border-[var(--color-Alert)]/30 p-3 rounded-md shadow-inner">
                    <div className="flex flex-col md:flex-row gap-3">
                     <div className="flex-1">
-                      <label className="text-[10px] text-gray-400 block mb-1">本月保養上班天數</label>
-                      <input type="number" value={manualWorkingDays} onChange={e=>setManualWorkingDays(Number(e.target.value))} className="w-full bg-black text-white text-xs p-2 border border-gray-800 rounded outline-none focus:border-red-500" />
+                      <label className="text-[10px] text-[var(--text-dim)] block mb-1">本月保養上班天數</label>
+                      <input type="number" value={manualWorkingDays} onChange={e=>setManualWorkingDays(Number(e.target.value))} className="w-full bg-[var(--bg-input)] text-[var(--text-main)] text-xs p-2 border border-[var(--border-sub)] rounded outline-none" />
                     </div>
                     <div className="flex-[2]">
-                      <label className="text-[10px] text-gray-400 block mb-1">假日清單 (如: 4/4 兒童節)</label>
-                      <input type="text" value={manualHolidaysText} onChange={e=>setManualHolidaysText(e.target.value)} className="w-full bg-black text-white text-xs p-2 border border-gray-800 rounded outline-none focus:border-red-500" />
+                      <label className="text-[10px] text-[var(--text-dim)] block mb-1">假日清單 (如: 4/4 兒童節)</label>
+                      <input type="text" value={manualHolidaysText} onChange={e=>setManualHolidaysText(e.target.value)} className="w-full bg-[var(--bg-input)] text-[var(--text-main)] text-xs p-2 border border-[var(--border-sub)] rounded outline-none" />
                     </div>
                   </div>
                 </div>
               )}
               
-              <div className="w-full md:w-auto md:ml-auto border-l-2 border-[#FF9D00]/50 pl-3 py-1 mt-1 md:mt-0">
-                <p className="text-[#FF9D00] opacity-90 text-[9px] md:text-xs font-mono tracking-wider leading-relaxed text-left">
+              <div className="w-full md:w-auto md:ml-auto border-l-2 border-[var(--color-C)]/50 pl-3 py-1 mt-1 md:mt-0">
+                <p className="text-[var(--color-C)] opacity-90 text-[9px] md:text-xs font-mono tracking-wider leading-relaxed text-left">
                   ⚠️ 適用於民國115年以後<br />
                   日後有修正紀念日及節日實施條例<br />
                   即不適用。
@@ -299,39 +331,37 @@
             </div>
           </div>
 
-          <div className="neon-border rounded-lg bg-[#0a0c10] w-full">
+          <div className="neon-border rounded-lg w-full overflow-hidden">
             {loading && !isManual ? (
-              <div className="text-center py-24 text-[#00F0FF] animate-pulse tracking-widest text-sm md:text-lg font-mono font-bold">
+              <div className="text-center py-24 text-[var(--color-A)] animate-pulse tracking-widest text-sm md:text-lg font-mono font-bold">
                 [ 系統同步中 SYNCING API DATA... ]
               </div>
             ) : (
-              <div className="w-full hide-scrollbar">
+              <div className="w-full hide-scrollbar overflow-x-auto">
                 <table className="w-full text-center border-collapse">
-                  <thead className="bg-[#12161c] text-gray-300 border-b border-[#1e2530]">
+                  <thead className="bg-[var(--bg-input)] text-[var(--text-dim)] border-b border-[var(--border-sub)]">
                     <tr>
                       <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base whitespace-nowrap">班別</th>
                       <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base">代班資訊</th>
                       <th className="py-3 px-1 md:py-5 md:px-4 font-bold tracking-widest text-[11px] md:text-base">國定假日</th>
                     </tr>
                   </thead>
-                  <tbody className="font-mono">
+                  <tbody className="font-mono text-[var(--text-main)]">
                     {shiftResults.map(row => (
                       <tr key={row.shift} className="cyber-table-row">
                         <td className="py-4 px-1 md:py-6 md:px-4 align-middle whitespace-nowrap">
                           <span className={`shift-badge color-${row.shift}`}>{row.shift}</span>
                         </td>
-                        
                         <td className={`py-4 px-1 md:py-6 md:px-4 text-[13px] md:text-xl font-bold tracking-widest align-middle ${row.isSubstitutable ? `color-${row.shift}` : 'color-Alert'}`}>
                           {row.substituteInfo}
                         </td>
-
                         <td className="py-4 px-1 md:py-6 md:px-4 font-bold tracking-wider leading-relaxed align-middle text-left md:text-center">
                           {row.monthHolidays.length > 0 ? (
                             row.monthHolidays.map((holiday, idx) => (
                               <div key={idx} className={`text-[12px] md:text-xl color-${row.shift} mb-1 md:mb-0`}>{holiday}</div>
                             ))
                           ) : (
-                            <span className="text-[12px] md:text-xl text-gray-600 opacity-50">-</span>
+                            <span className="text-[12px] md:text-xl text-[var(--text-dim)] opacity-50">-</span>
                           )}
                         </td>
                       </tr>
@@ -342,29 +372,23 @@
             )}
           </div>
 
-          {/* 全年度不可代班資訊欄 - 新版排版 */}
+          {/* 全年度不可代班資訊欄 */}
           {yearlyShortageData && !isManual && (
-            <div className="neon-border rounded-lg p-4 md:p-6 mt-6 md:mt-8 bg-[#0a0c10] w-full">
-              <h2 className="text-lg md:text-xl font-bold text-gray-300 mb-6 text-center tracking-widest border-b border-[#1e2530] pb-4">
+            <div className="neon-border rounded-lg p-4 md:p-6 mt-6 md:mt-8 w-full">
+              <h2 className="text-lg md:text-xl font-bold text-[var(--text-main)] mb-6 text-center tracking-widest border-b border-[var(--border-sub)] pb-4">
                 ✦ {rocYear}年度【不可代班】資訊欄 ✦
               </h2>
-              
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 font-mono">
                 {['A', 'B', 'C', 'D'].map(shift => (
-                  <div key={shift} className="flex flex-col items-center bg-[#12161c] border border-[#1e2530] rounded-lg p-4 hover:border-[#00F0FF]/30 transition-colors shadow-inner">
+                  <div key={shift} className="flex flex-col items-center bg-[var(--bg-input)] border border-[var(--border-sub)] rounded-lg p-4 hover:border-[var(--color-A)]/30 transition-colors shadow-inner">
                     <span className={`shift-badge color-${shift} w-16 text-center mb-4`}>{shift}</span>
-                    
                     <div className="flex flex-col items-center justify-start w-full min-h-[60px]">
                       {yearlyShortageData[shift].length > 0 ? (
                         yearlyShortageData[shift].map((item, idx) => (
-                          <div key={idx} className="color-Alert text-[13px] md:text-base font-bold tracking-widest mb-2 last:mb-0">
-                            {item}
-                          </div>
+                          <div key={idx} className="color-Alert text-[13px] md:text-base font-bold tracking-widest mb-2 last:mb-0">{item}</div>
                         ))
                       ) : (
-                        <div className="text-white text-[12px] md:text-sm font-bold tracking-widest mt-1 opacity-90">
-                          本年度均可代班
-                        </div>
+                        <div className="text-[var(--text-main)] text-[12px] md:text-sm font-bold tracking-widest mt-1 opacity-90">本年度均可代班</div>
                       )}
                     </div>
                   </div>
@@ -373,44 +397,22 @@
             </div>
           )}
 
-          {isManual && (
-            <div className="neon-border rounded-lg p-4 mt-6 text-center bg-[#0a0c10] w-full">
-              <span className="text-[#FF9D00] text-sm tracking-widest font-mono">⚠️ 手動模式下無法預測全年度資訊，請切回正常連線狀態。</span>
-            </div>
-          )}
-
           <div className="mt-10 text-center pb-2">
             <div className="inline-block relative">
-              <span className="text-gray-600 text-[9px] uppercase tracking-[0.3em] block mb-1">
-                System Designed By
-              </span>
-              <div className="text-xl md:text-2xl font-bold tracking-[0.1em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600" 
-                    style={{ textShadow: "0 0 15px rgba(0, 240, 255, 0.4)" }}>
+              <span className="text-[var(--text-dim)] text-[9px] uppercase tracking-[0.3em] block mb-1">System Designed By</span>
+              <div className="text-xl md:text-2xl font-bold tracking-[0.1em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
                 <span>複值</span>
                 <span style={{ fontFamily: "'RemachineScript', sans-serif", fontSize: "1.3em", verticalAlign: "middle" }}>D-Joe.T</span>
               </div>
               <div className="absolute -bottom-1 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-60"></div>
             </div>
           </div>
-
         </div>
       );
     };
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
-  </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js').then(function(registration) {
-          console.log('PWA Ready!');
-        }).catch(function(err) {
-          console.log('PWA Fail:', err);
-        });
-      });
-    }
   </script>
 </body>
 </html>
