@@ -18,7 +18,7 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <style> 
+  <style>
     :root {
       --bg-body: #0d0f12; --bg-card: #0a0c10; --bg-input: #12161c;
       --text-main: #e0e0e0; --text-dim: #9ca3af;
@@ -71,7 +71,7 @@
   <div id="root" class="w-full max-w-7xl"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+    const { useState, useEffect, useMemo, useRef } = React;
 
     // --- 計算邏輯保持不變 ---
     const processTaiwanCalendar = (jsonData) => {
@@ -141,6 +141,7 @@
       const [errorMsg, setErrorMsg] = useState("");
       const [manualWorkingDays, setManualWorkingDays] = useState(20);
       const [manualHolidaysText, setManualHolidaysText] = useState("");
+      const fetchRequestIdRef = useRef(0);
 
       const handleRocYearChange = (e) => {
         const cleanValue = e.target.value.replace(/\D/g, "").slice(0, 3);
@@ -157,16 +158,41 @@
       }, [isDarkMode]);
 
       useEffect(() => {
-        const fetchApi = async () => {
-          setLoading(true); setErrorMsg(""); setIsManual(false);
+        const currentRocYear = String(rocYear ?? "");
+        const currentRequestId = ++fetchRequestIdRef.current;
+        const controller = new AbortController();
+
+        if (currentRocYear === "") {
+          setLoading(false);
+          setErrorMsg("");
+          return () => controller.abort();
+        }
+
+        setLoading(true);
+        setErrorMsg("");
+        setIsManual(false);
+
+        const timer = setTimeout(async () => {
           try {
-            const res = await fetch(`https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/${Number(rocYear) + 1911}.json`);
+            const targetRocYear = Number(currentRocYear);
+            const res = await fetch(`https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/${targetRocYear + 1911}.json`, { signal: controller.signal });
             if(!res.ok) throw new Error();
-            setParsedData(processTaiwanCalendar(await res.json()));
-          } catch { setErrorMsg(`⚠️ 查無 ${rocYear} 年資料，已切換手動模式`); setIsManual(true); }
-          finally { setLoading(false); }
+            const jsonData = await res.json();
+            if (fetchRequestIdRef.current !== currentRequestId) return;
+            setParsedData(processTaiwanCalendar(jsonData));
+          } catch (err) {
+            if (controller.signal.aborted || fetchRequestIdRef.current !== currentRequestId) return;
+            setErrorMsg(`⚠️ 查無 ${currentRocYear} 年資料，已切換手動模式`);
+            setIsManual(true);
+          } finally {
+            if (fetchRequestIdRef.current === currentRequestId) setLoading(false);
+          }
+        }, 500);
+
+        return () => {
+          clearTimeout(timer);
+          controller.abort();
         };
-        fetchApi();
       }, [rocYear]);
 
       const shiftResults = useMemo(() => ['A', 'B', 'C', 'D'].map(s => calculateShiftData(rocYear, month, s, parsedData.holidayMap, parsedData.workDict, isManual, manualWorkingDays, manualHolidaysText)), [rocYear, month, parsedData, isManual, manualWorkingDays, manualHolidaysText]);
