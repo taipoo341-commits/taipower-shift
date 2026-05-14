@@ -1,6 +1,6 @@
 {
-  "name": "台電輪班工時系統",
-  "short_name": "台電排班",
+  "name": "複值代班查詢系統",
+  "short_name": "複值代班查詢",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0d0f12",
