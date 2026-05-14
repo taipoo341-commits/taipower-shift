@@ -4,12 +4,77 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>複值"代班時數"查詢系統</title>
-  
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#0d0f12">
+
+  <link id="pwaManifestLink" rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/png" href="./icon.png">
   <link rel="apple-touch-icon" href="./icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#00F0FF">
+  <script>
+    (function () {
+      var appName = "複值代班查詢系統";
+      var shortName = "複值代班查詢";
+      var iconSrc = "./icon.png";
+      var fallbackManifest = "./manifest.json";
+
+      function getManifestLink() {
+        var link = document.getElementById("pwaManifestLink");
+        if (!link) {
+          link = document.createElement("link");
+          link.id = "pwaManifestLink";
+          link.rel = "manifest";
+          document.head.appendChild(link);
+        }
+        return link;
+      }
+
+      function setFallbackManifest() {
+        getManifestLink().href = fallbackManifest;
+      }
+
+      function setAutoManifest(width, height) {
+        var sizeText = String(width) + "x" + String(height);
+        var manifest = {
+          id: "./",
+          name: appName,
+          short_name: shortName,
+          start_url: "./index.html",
+          scope: "./",
+          display: "standalone",
+          background_color: "#0d0f12",
+          theme_color: "#00F0FF",
+          icons: [
+            {
+              src: iconSrc,
+              sizes: sizeText,
+              type: "image/png",
+              purpose: "any maskable"
+            }
+          ]
+        };
+
+        try {
+          var blob = new Blob([JSON.stringify(manifest, null, 2)], {
+            type: "application/manifest+json"
+          });
+          getManifestLink().href = URL.createObjectURL(blob);
+        } catch (error) {
+          setFallbackManifest();
+        }
+      }
+
+      var img = new Image();
+      img.onload = function () {
+        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+          setAutoManifest(img.naturalWidth, img.naturalHeight);
+        } else {
+          setFallbackManifest();
+        }
+      };
+      img.onerror = setFallbackManifest;
+      img.src = iconSrc + "?pwa_icon_probe=" + Date.now();
+    })();
+  </script>
+<meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="代班時數查詢">
 
@@ -324,5 +389,14 @@
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("./sw.js");
+    });
+  }
+</script>
+
 </body>
 </html>
